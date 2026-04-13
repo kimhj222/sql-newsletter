@@ -9,7 +9,7 @@ GitHub Pages 배포 후:
 
 ```
 https://{계정명}.github.io/sql-newsletter/                    ← 전체 회차 목록
-https://{계정명}.github.io/sql-newsletter/lessons/01-select/  ← 1회차 실습
+https://{계정명}.github.io/sql-newsletter/lessons/01-basics/  ← 1회차 실습
 ```
 
 ## 주요 기능
@@ -30,10 +30,10 @@ sql-newsletter/
 │   ├── sql-engine.js       ← sql.js 초기화 및 쿼리 실행
 │   └── ui.js               ← 에디터, 결과 테이블, 미션 UI
 ├── lessons/
-│   ├── 01-select/
+│   ├── 01-basics/
 │   │   ├── index.html      ← 1회차 위젯 페이지
 │   │   └── data.js         ← 1회차 테이블 및 미션 데이터
-│   ├── 02-where/
+│   ├── 02-group-by/
 │   │   ├── index.html
 │   │   └── data.js
 │   └── ...
@@ -44,18 +44,15 @@ sql-newsletter/
 
 | 회차 | 주제 | 핵심 키워드 | 폴더 |
 |------|------|-------------|------|
-| 1 | SELECT와 FROM으로 데이터 꺼내기 | `SELECT`, `FROM`, `*` | `01-select` |
-| 2 | 원하는 조건만 골라내기 | `WHERE`, `AND`, `OR` | `02-where` |
-| 3 | 데이터 정렬과 개수 제한 | `ORDER BY`, `LIMIT` | `03-order-by` |
-| 4 | 그룹별로 요약하기 | `GROUP BY`, `COUNT`, `SUM`, `AVG` | `04-group-by` |
-| 5 | 조건부 집계 | `HAVING` | `05-having` |
-| 6 | 두 테이블 합치기 | `INNER JOIN`, `ON` | `06-join` |
-| 7 | LEFT JOIN과 NULL 다루기 | `LEFT JOIN`, `IS NULL` | `07-left-join` |
-| 8 | 서브쿼리로 복잡한 질문 해결하기 | `(SELECT ...)` | `08-subquery` |
-| 9 | CASE WHEN으로 데이터 분류하기 | `CASE WHEN THEN END` | `09-case-when` |
-| 10 | 날짜 함수 활용하기 | `DATE`, `DATEADD` | `10-date` |
-| 11 | 윈도우 함수 맛보기 | `ROW_NUMBER()`, `RANK()` | `11-window` |
-| 12 | 실전 종합 문제 풀어보기 | 복합 쿼리 | `12-final` |
+| 1 | SQL 첫걸음 — 꺼내고, 거르고, 정렬하기 | `SELECT`, `FROM`, `WHERE`, `ORDER BY`, `LIMIT` | `01-basics` |
+| 2 | 그룹별로 요약하기 | `GROUP BY`, `COUNT`, `SUM`, `AVG`, `HAVING` | `02-group-by` |
+| 3 | 두 테이블 합치기 (JOIN) | `INNER JOIN`, `LEFT JOIN`, `IS NULL` | `03-join` |
+| 4 | 서브쿼리로 복잡한 질문 해결하기 | `(SELECT ...)`, `IN`, `EXISTS` | `04-subquery` |
+| 5 | CASE WHEN으로 데이터 분류하기 | `CASE WHEN THEN ELSE END` | `05-case-when` |
+| 6 | 날짜 함수 활용하기 | `DATE`, `DATEADD`, `DATEDIFF` | `06-date` |
+| 7 | 윈도우 함수 맛보기 | `ROW_NUMBER()`, `RANK()`, `LAG/LEAD` | `07-window` |
+| 8 | 실전 복합 쿼리 | `WITH (CTE)`, 다중 JOIN, 중첩 집계 | `08-advanced` |
+| 9 | 종합 문제 풀어보기 | 전 회차 종합 | `09-final` |
 
 ## 시작하기
 
@@ -73,7 +70,7 @@ cd sql-newsletter
 python3 -m http.server 8000
 
 # 브라우저에서 확인
-# http://localhost:8000/lessons/01-select/
+# http://localhost:8000/lessons/01-basics/
 ```
 
 > 참고: `file://` 프로토콜로 직접 열면 sql.js WASM 로딩이 실패할 수 있습니다. 반드시 HTTP 서버를 통해 확인하세요.
@@ -90,15 +87,15 @@ python3 -m http.server 8000
 
 ```bash
 # 1. 폴더 생성 및 기존 파일 복사
-mkdir lessons/02-where
-cp lessons/01-select/index.html lessons/02-where/
+mkdir lessons/02-group-by
+cp lessons/01-basics/index.html lessons/02-group-by/
 
 # 2. data.js 작성 (테이블 + 미션 정의)
 # 3. index.html에서 data.js 경로 확인
 # 4. index.html 랜딩 페이지에 링크 추가
 # 5. 커밋 & 푸시
 git add .
-git commit -m "2회차 WHERE 추가"
+git commit -m "2회차 GROUP BY 추가"
 git push origin main
 ```
 
@@ -107,9 +104,9 @@ git push origin main
 ```javascript
 const LESSON = {
   id: 2,
-  title: "원하는 조건만 골라내기 (WHERE)",
-  subtitle: "엑셀의 필터 기능, SQL에서는 WHERE로 해요",
-  defaultQuery: "-- 주문 금액이 20,000원 이상인 것만 조회해보세요\nSELECT * FROM orders WHERE total >= 20000;",
+  title: "그룹별로 요약하기 (GROUP BY)",
+  subtitle: "엑셀 피벗테이블처럼, 카테고리별 합계/평균을 구해봐요",
+  defaultQuery: "-- 카테고리별 상품 수를 세어보세요\nSELECT category, COUNT(*) FROM products GROUP BY category;",
 
   tables: [
     {
@@ -137,7 +134,7 @@ const LESSON = {
 
 1. 뉴스레터 Workdoc을 열고 실습 삽입 위치에 커서 배치
 2. `/embed` 입력 후 선택
-3. 해당 회차 URL 붙여넣기: `https://{계정명}.github.io/sql-newsletter/lessons/01-select/`
+3. 해당 회차 URL 붙여넣기: `https://{계정명}.github.io/sql-newsletter/lessons/01-basics/`
 4. 임베드 높이를 700px 이상으로 조정
 
 ## 기술적 참고 사항
@@ -155,8 +152,8 @@ const LESSON = {
 | FLATTEN / VARIANT | 미지원 | 지원 |
 | 날짜 함수 | SQLite 방식 | Snowflake 방식 |
 
-1~9회차(기초)는 표준 SQL로 위젯에서 충분히 실습 가능합니다.
-10회차 이후 Snowflake 전용 내용은 뉴스레터 본문에서 설명하고, 실제 Snowflake 환경에서 실습하도록 안내하세요.
+1~7회차(기초~윈도우 함수)는 표준 SQL로 위젯에서 충분히 실습 가능합니다.
+6회차(날짜 함수) 중 Snowflake 전용 내용은 뉴스레터 본문에서 설명하고, 실제 Snowflake 환경에서 실습하도록 안내하세요.
 
 ### 브랜드 커스터마이징
 
