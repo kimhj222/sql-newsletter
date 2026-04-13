@@ -29,19 +29,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:
 
 .section-label{font-size:.7rem;font-weight:600;color:var(--text-light);letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px}
 
-.toggle-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);cursor:pointer;user-select:none;margin-bottom:6px}
-.toggle-bar:hover{background:var(--surface-alt)}
-.toggle-bar .left{display:flex;align-items:center;gap:8px}
-.toggle-bar .arrow{font-size:10px;color:var(--text-light);transition:transform .2s}
-.toggle-bar .arrow.open{transform:rotate(90deg)}
-.toggle-bar .tname{font-family:var(--mono);font-size:.8rem;font-weight:500;color:var(--accent);background:var(--accent-bg);padding:1px 7px;border-radius:4px}
-.toggle-bar .tabs-inline{display:flex;gap:0}
-.toggle-bar .tabs-inline button{font-family:var(--sans);font-size:.75rem;padding:3px 10px;border:none;background:none;color:var(--text-light);cursor:pointer;border-bottom:2px solid transparent}
-.toggle-bar .tabs-inline button.active{color:var(--accent);border-bottom-color:var(--accent)}
-
-.collapsible{overflow:hidden;transition:max-height .25s ease;max-height:0}
-.collapsible.open{max-height:220px}
-.table-inner{border:1px solid var(--border-light);border-radius:0 0 var(--radius) var(--radius);border-top:none;overflow:hidden;margin-top:-6px;margin-bottom:6px}
+.table-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius) var(--radius) 0 0}
+.table-bar .left{display:flex;align-items:center;gap:8px}
+.table-bar .tname{font-family:var(--mono);font-size:.8rem;font-weight:500;color:var(--accent);background:var(--accent-bg);padding:1px 7px;border-radius:4px}
+.table-bar .tabs-inline{display:flex;gap:0}
+.table-bar .tabs-inline button{font-family:var(--sans);font-size:.75rem;padding:3px 10px;border:none;background:none;color:var(--text-light);cursor:pointer;border-bottom:2px solid transparent}
+.table-bar .tabs-inline button.active{color:var(--accent);border-bottom-color:var(--accent)}
+.table-panel{border:1px solid var(--border-light);border-top:none;border-radius:0 0 var(--radius) var(--radius);overflow:hidden;margin-bottom:6px}
 .table-wrap{overflow-x:auto;max-height:180px;overflow-y:auto}
 table.data{width:100%;border-collapse:collapse;font-size:.75rem;white-space:nowrap}
 table.data th{position:sticky;top:0;background:var(--surface-alt);text-align:left;padding:5px 10px;color:var(--text-mid);font-weight:600;border-bottom:1px solid var(--border);z-index:1}
@@ -107,7 +101,6 @@ textarea.editor:focus{border-color:var(--accent)}
   let db = null;
   const completed = new Set();
   let currentTable = 0;
-  let tableOpen = false;
 
   const SQL = await initSqlJs({
     locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/' + f
@@ -127,19 +120,16 @@ textarea.editor:focus{border-color:var(--accent)}
     </div>
 
     <div class="section-label">예시 테이블</div>
-    <div class="toggle-bar" id="toggle-bar">
+    <div class="table-bar">
       <div class="left">
-        <span class="arrow" id="arrow">&#9654;</span>
         <span style="font-size:.78rem;color:var(--text-mid)">테이블명:</span>
         <span class="tname" id="tname">${L.tables[0].name}</span>
         <span class="row-count-inline" id="row-count-top">(${L.tables[0].rows.length}행)</span>
       </div>
       <div class="tabs-inline" id="tabs-inline"></div>
     </div>
-    <div class="collapsible" id="collapsible">
-      <div class="table-inner">
-        <div class="table-wrap" id="table-display"></div>
-      </div>
+    <div class="table-panel">
+      <div class="table-wrap" id="table-display"></div>
     </div>
 
     <div class="two-col">
@@ -166,8 +156,6 @@ textarea.editor:focus{border-color:var(--accent)}
     </div>
   `;
 
-  const arrowEl = document.getElementById('arrow');
-  const collapsibleEl = document.getElementById('collapsible');
   const tnameEl = document.getElementById('tname');
   const rowCountTop = document.getElementById('row-count-top');
   const tableEl = document.getElementById('table-display');
@@ -183,21 +171,11 @@ textarea.editor:focus{border-color:var(--accent)}
     btn.textContent = t.label;
     btn.className = i === 0 ? 'active' : '';
     btn.onclick = (e) => {
-      e.stopPropagation();
       currentTable = i;
       showTable(i);
-      if (!tableOpen) toggleTable();
     };
     tabsInline.appendChild(btn);
   });
-
-  document.getElementById('toggle-bar').onclick = () => toggleTable();
-
-  function toggleTable() {
-    tableOpen = !tableOpen;
-    collapsibleEl.classList.toggle('open', tableOpen);
-    arrowEl.classList.toggle('open', tableOpen);
-  }
 
   function showTable(idx) {
     tabsInline.querySelectorAll('button').forEach((b, i) => b.classList.toggle('active', i === idx));
