@@ -1,0 +1,13 @@
+:root {
+  --primary: #534AB7;        /* 메인 컬러 → 회사 브랜드 컬러로 변경 */
+  --primary-hover: #3C3489;  /* 메인 컬러 어두운 버전 */
+  --bg-main: #ffffff;        /* 배경색 */
+  --bg-secondary: #f7f7f5;   /* 보조 배경색 */
+  --text-primary: #1a1a1a;   /* 본문 텍스트 */
+  --text-secondary: #6b6b6b; /* 보조 텍스트 */
+  --border: #e5e5e3;         /* 테두리 */
+  --success: #16a34a;        /* 미션 완료 */
+  --error: #dc2626;          /* 에러 메시지 */
+  --font-sans: 'Pretendard', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
