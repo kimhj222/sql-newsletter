@@ -175,8 +175,8 @@ textarea.editor::placeholder{color:var(--text-light)}
       </div>
       <div>
         <div class="mission-tabs">
-          <button class="mission-tab active" id="tab-practice" onclick="switchMissionTab('practice')">연습문제</button>
-          <button class="mission-tab" id="tab-challenge" onclick="switchMissionTab('challenge')">실전문제</button>
+          <button class="mission-tab active" id="tab-practice">연습문제</button>
+          <button class="mission-tab" id="tab-challenge">실전문제</button>
         </div>
         <div class="missions" id="missions"></div>
         <div class="progress-bar">
@@ -268,12 +268,15 @@ textarea.editor::placeholder{color:var(--text-light)}
   const completedChallenge = new Set();
   let currentMissionTab = 'practice';
 
-  window.switchMissionTab = function(tab) {
+  function switchMissionTab(tab) {
     currentMissionTab = tab;
     document.getElementById('tab-practice').classList.toggle('active', tab === 'practice');
     document.getElementById('tab-challenge').classList.toggle('active', tab === 'challenge');
     renderMissions();
-  };
+  }
+
+  document.getElementById('tab-practice').onclick = () => switchMissionTab('practice');
+  document.getElementById('tab-challenge').onclick = () => switchMissionTab('challenge');
 
   function renderMissions() {
     if (currentMissionTab === 'practice') {
