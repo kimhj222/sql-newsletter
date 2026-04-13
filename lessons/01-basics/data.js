@@ -154,36 +154,59 @@ const LESSON = {
     }
   ],
 
-  missions: [
+  // 연습문제: 힌트 제공, 클릭하면 정답 자동 입력
+  practice: [
     {
-      id: "m1",
+      id: "p1",
       text: "orders 테이블의 모든 데이터를 조회해보세요",
       hint: "SELECT * FROM orders;",
       check: (sql) => /select\s+\*\s+from\s+orders/i.test(sql)
     },
     {
-      id: "m2",
+      id: "p2",
       text: "customers 테이블에서 이름(name)과 도시(city)만 조회해보세요",
       hint: "SELECT name, city FROM customers;",
       check: (sql) => /select\s+.*name.*city.*from\s+customers/i.test(sql) || /select\s+.*city.*name.*from\s+customers/i.test(sql)
     },
     {
-      id: "m3",
+      id: "p3",
       text: "서울에 사는 고객만 조회해보세요 (WHERE 사용)",
       hint: "SELECT * FROM customers WHERE city = '서울';",
       check: (sql) => /where\s+.*city\s*=\s*'서울'/i.test(sql)
     },
     {
-      id: "m4",
+      id: "p4",
       text: "수량이 3개 이상인 주문만 조회해보세요",
       hint: "SELECT * FROM orders WHERE quantity >= 3;",
       check: (sql) => /where\s+.*quantity\s*>=\s*3/i.test(sql)
     },
     {
-      id: "m5",
+      id: "p5",
       text: "주문을 최신 날짜순으로 정렬해서 상위 10건만 조회해보세요",
       hint: "SELECT * FROM orders ORDER BY order_date DESC LIMIT 10;",
       check: (sql) => /order\s+by.*order_date.*desc.*limit\s+10/i.test(sql)
+    }
+  ],
+
+  // 실전문제: 힌트 없음, 결과값으로 채점
+  challenge: [
+    {
+      id: "c1",
+      text: "products 테이블에서 가격이 30,000원 이상인 상품의 이름과 가격을 조회하세요",
+      answerQuery: "SELECT product_name, price FROM products WHERE price >= 30000",
+      check: (sql) => /select\s+.*product_name.*price.*from\s+products.*where\s+.*price\s*>=\s*30000/i.test(sql)
+    },
+    {
+      id: "c2",
+      text: "orders 테이블에서 2024년 3월에 주문된 건만 조회하세요 (order_date 활용)",
+      answerQuery: "SELECT * FROM orders WHERE order_date >= '2024-03-01' AND order_date < '2024-04-01'",
+      check: (sql) => /where\s+.*order_date/i.test(sql) && /2024-03/i.test(sql)
+    },
+    {
+      id: "c3",
+      text: "고객 중 부산에 사는 사람의 이름과 이메일을 이름순(오름차순)으로 조회하세요",
+      answerQuery: "SELECT name, email FROM customers WHERE city = '부산' ORDER BY name ASC",
+      check: (sql) => /where\s+.*city\s*=\s*'부산'/i.test(sql) && /order\s+by\s+.*name/i.test(sql)
     }
   ]
 };
