@@ -137,7 +137,7 @@ textarea.editor:focus{border-color:var(--accent)}
     <div class="editor-section">
       <div class="section-label">SQL 편집기</div>
       <div class="editor-wrap">
-        <textarea class="editor" id="editor" spellcheck="false">${L.defaultQuery}</textarea>
+        <textarea class="editor" id="editor" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" data-gramm="false">${L.defaultQuery}</textarea>
         <div class="editor-hint">Ctrl+Enter로 실행</div>
       </div>
       <div class="btn-row">
