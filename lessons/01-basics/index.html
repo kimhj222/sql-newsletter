@@ -46,9 +46,15 @@ table.data tbody tr:hover{background:var(--surface-alt)}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:.75rem}
 
 .editor-wrap{position:relative}
-textarea.editor{width:100%;height:90px;padding:10px;font-family:var(--mono);font-size:.8rem;line-height:1.6;color:var(--text);background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius);resize:none;outline:none;transition:border-color .15s}
-textarea.editor:focus{border-color:var(--accent)}
-.editor-hint{position:absolute;bottom:5px;right:8px;font-size:.65rem;color:var(--text-light);pointer-events:none}
+.editor-card{background:var(--surface);border:1.5px solid var(--accent);border-left:4px solid var(--accent);border-radius:var(--radius);overflow:hidden;transition:box-shadow .2s}
+.editor-card:focus-within{box-shadow:0 0 0 3px rgba(45,91,227,.12)}
+.editor-card-header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--accent-bg);border-bottom:1px solid rgba(45,91,227,.15)}
+.editor-card-header .label{font-size:.72rem;font-weight:600;color:var(--accent-text);letter-spacing:.3px}
+.editor-card-header .cursor-icon{width:14px;height:14px;display:inline-block;border-right:2px solid var(--accent);animation:blink 1s step-end infinite;margin-right:4px}
+@keyframes blink{50%{border-color:transparent}}
+.editor-card-header .hint-text{font-size:.65rem;color:var(--accent-text);opacity:.7}
+textarea.editor{width:100%;height:80px;padding:10px;font-family:var(--mono);font-size:.8rem;line-height:1.6;color:var(--text);background:var(--surface);border:none;resize:none;outline:none}
+textarea.editor::placeholder{color:var(--text-light)}
 
 .btn-row{display:flex;gap:6px;margin-top:6px}
 .btn{padding:5px 14px;font-size:.78rem;font-weight:500;font-family:var(--sans);border-radius:var(--radius-sm);cursor:pointer;transition:all .12s;border:none}
@@ -136,8 +142,13 @@ textarea.editor:focus{border-color:var(--accent)}
       <div>
         <div class="section-label">SQL 편집기</div>
         <div class="editor-wrap">
-          <textarea class="editor" id="editor" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" data-gramm="false">${L.defaultQuery}</textarea>
-          <div class="editor-hint">Ctrl+Enter</div>
+          <div class="editor-card">
+            <div class="editor-card-header">
+              <div class="label"><span class="cursor-icon"></span>여기에 쿼리를 입력하세요</div>
+              <div class="hint-text">Ctrl+Enter로 실행</div>
+            </div>
+            <textarea class="editor" id="editor" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" data-gramm="false">${L.defaultQuery}</textarea>
+          </div>
         </div>
         <div class="btn-row">
           <button class="btn btn-run" id="btn-run">실행</button>
