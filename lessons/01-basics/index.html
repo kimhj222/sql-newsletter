@@ -70,13 +70,31 @@ textarea.editor::placeholder{color:var(--text-light)}
 .msg-error{font-size:.78rem;color:var(--error);padding:6px 10px;background:var(--error-bg);border-radius:var(--radius-sm);font-family:var(--mono);word-break:break-all}
 .msg-mission{display:inline-block;margin-top:4px;font-size:.75rem;color:var(--success);font-weight:500}
 
+.mission-tabs{display:flex;gap:0;margin-bottom:8px;border-bottom:1.5px solid var(--border)}
+.mission-tab{font-family:var(--sans);font-size:.78rem;font-weight:500;padding:6px 14px;border:none;background:none;color:var(--text-light);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1.5px;transition:color .15s,border-color .15s}
+.mission-tab:hover{color:var(--text-mid)}
+.mission-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.mission-tab .count{font-size:.7rem;font-weight:600;padding:1px 6px;border-radius:10px;margin-left:4px}
+.mission-tab .count.done-count{background:var(--success-bg);color:var(--success)}
+.mission-tab .count.todo-count{background:var(--surface-alt);color:var(--text-light)}
+
 .missions{display:flex;flex-direction:column;gap:5px}
 .mission{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);cursor:pointer;transition:all .12s}
 .mission:hover{border-color:var(--border);background:var(--surface-alt)}
 .mission.done{border-color:#a3d9b1}
+.mission.wrong{border-color:#f09995;animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
 .mission .check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;font-size:10px;color:transparent}
 .mission.done .check{background:var(--success);border-color:var(--success);color:#fff}
+.mission .num{font-size:.7rem;font-weight:600;color:var(--text-light);flex-shrink:0;min-width:16px}
 .mission .text{font-size:.78rem;color:var(--text);line-height:1.4;flex:1}
+.mission .hint-tag{font-size:.65rem;color:var(--accent-text);background:var(--accent-bg);padding:1px 6px;border-radius:3px;flex-shrink:0}
+.mission-challenge .num{color:var(--error)}
+
+.grade-result{margin-top:8px;padding:8px 12px;border-radius:var(--radius-sm);font-size:.78rem;font-weight:500;display:none}
+.grade-result.show{display:block}
+.grade-result.correct{background:var(--success-bg);color:var(--success)}
+.grade-result.incorrect{background:var(--error-bg);color:var(--error)}
 
 .progress-bar{margin-top:8px;display:flex;align-items:center;gap:8px}
 .progress-track{flex:1;height:4px;background:var(--border-light);border-radius:2px;overflow:hidden}
@@ -105,7 +123,6 @@ textarea.editor::placeholder{color:var(--text-light)}
 (async function(){
   const L = LESSON;
   let db = null;
-  const completed = new Set();
   let currentTable = 0;
 
   const SQL = await initSqlJs({
@@ -157,11 +174,14 @@ textarea.editor::placeholder{color:var(--text-light)}
         <div class="result" id="result"></div>
       </div>
       <div>
-        <div class="section-label">미션</div>
+        <div class="mission-tabs">
+          <button class="mission-tab active" id="tab-practice" onclick="switchMissionTab('practice')">연습문제</button>
+          <button class="mission-tab" id="tab-challenge" onclick="switchMissionTab('challenge')">실전문제</button>
+        </div>
         <div class="missions" id="missions"></div>
         <div class="progress-bar">
           <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-          <div class="progress-text" id="progress-text">0 / ${L.missions.length}</div>
+          <div class="progress-text" id="progress-text">0 / ${L.practice.length}</div>
         </div>
       </div>
     </div>
@@ -244,13 +264,46 @@ textarea.editor::placeholder{color:var(--text-light)}
     }
   });
 
+  const completedPractice = new Set();
+  const completedChallenge = new Set();
+  let currentMissionTab = 'practice';
+
+  window.switchMissionTab = function(tab) {
+    currentMissionTab = tab;
+    document.getElementById('tab-practice').classList.toggle('active', tab === 'practice');
+    document.getElementById('tab-challenge').classList.toggle('active', tab === 'challenge');
+    renderMissions();
+  };
+
   function renderMissions() {
-    missionsEl.innerHTML = L.missions.map(m => `
-      <div class="mission ${completed.has(m.id) ? 'done' : ''}" data-hint="${encodeURIComponent(m.hint)}">
-        <div class="check">${completed.has(m.id) ? '&#10003;' : ''}</div>
+    if (currentMissionTab === 'practice') {
+      renderPractice();
+    } else {
+      renderChallenge();
+    }
+    updateTabCounts();
+  }
+
+  function updateTabCounts() {
+    const pDone = completedPractice.size;
+    const pTotal = L.practice.length;
+    const cDone = completedChallenge.size;
+    const cTotal = L.challenge.length;
+    document.getElementById('tab-practice').innerHTML = '연습문제 <span class="count ' + (pDone === pTotal && pTotal > 0 ? 'done-count' : 'todo-count') + '">' + pDone + '/' + pTotal + '</span>';
+    document.getElementById('tab-challenge').innerHTML = '실전문제 <span class="count ' + (cDone === cTotal && cTotal > 0 ? 'done-count' : 'todo-count') + '">' + cDone + '/' + cTotal + '</span>';
+  }
+
+  function renderPractice() {
+    const items = L.practice;
+    const done = completedPractice;
+    missionsEl.innerHTML = items.map((m, i) => `
+      <div class="mission ${done.has(m.id) ? 'done' : ''}" data-hint="${encodeURIComponent(m.hint)}" data-id="${m.id}" data-type="practice">
+        <div class="check">${done.has(m.id) ? '&#10003;' : ''}</div>
+        <div class="num">${i + 1}</div>
         <div class="text">${m.text}</div>
+        <div class="hint-tag">${done.has(m.id) ? '완료' : '힌트'}</div>
       </div>
-    `).join('');
+    `).join('') + '<div class="grade-result" id="grade-result"></div>';
 
     missionsEl.querySelectorAll('.mission').forEach(el => {
       el.onclick = () => {
@@ -260,21 +313,103 @@ textarea.editor::placeholder{color:var(--text-light)}
       };
     });
 
-    const done = completed.size;
-    const total = L.missions.length;
-    progressFill.style.width = (done / total * 100) + '%';
-    progressText.textContent = done + ' / ' + total + (done === total ? '  완료!' : '');
+    const total = items.length;
+    progressFill.style.width = (done.size / total * 100) + '%';
+    progressText.textContent = done.size + ' / ' + total + (done.size === total ? '  완료!' : '');
+  }
+
+  function renderChallenge() {
+    const items = L.challenge;
+    const done = completedChallenge;
+    missionsEl.innerHTML = items.map((m, i) => `
+      <div class="mission mission-challenge ${done.has(m.id) ? 'done' : ''}" data-id="${m.id}" data-type="challenge">
+        <div class="check">${done.has(m.id) ? '&#10003;' : ''}</div>
+        <div class="num">Q${i + 1}</div>
+        <div class="text">${m.text}</div>
+      </div>
+    `).join('') + '<div class="grade-result" id="grade-result"></div>';
+
+    missionsEl.querySelectorAll('.mission').forEach(el => {
+      el.onclick = () => {
+        const id = el.dataset.id;
+        const challenge = L.challenge.find(c => c.id === id);
+        if (!challenge || completedChallenge.has(id)) return;
+        gradeChallenge(challenge, el);
+      };
+    });
+
+    const total = items.length;
+    progressFill.style.width = (done.size / total * 100) + '%';
+    progressText.textContent = done.size + ' / ' + total + (done.size === total ? '  완료!' : '');
+  }
+
+  function gradeChallenge(challenge, el) {
+    const sql = editorEl.value.trim();
+    if (!sql) {
+      showGradeResult('먼저 SQL을 입력하고 실행한 뒤 문제를 클릭하세요', false);
+      return;
+    }
+
+    try {
+      const userResult = db.exec(sql);
+      const answerResult = db.exec(challenge.answerQuery);
+
+      if (!userResult.length && !answerResult.length) {
+        completedChallenge.add(challenge.id);
+        showGradeResult('정답! 결과가 일치합니다', true);
+        renderMissions();
+        return;
+      }
+
+      if (!userResult.length || !answerResult.length) {
+        showGradeResult('오답 — 결과가 다릅니다. 다시 시도해보세요', false);
+        el.classList.add('wrong');
+        setTimeout(() => el.classList.remove('wrong'), 400);
+        return;
+      }
+
+      const uCols = userResult[0].columns.map(c => c.toLowerCase());
+      const aCols = answerResult[0].columns.map(c => c.toLowerCase());
+      const uVals = JSON.stringify(userResult[0].values.map(r => r.map(String)).sort());
+      const aVals = JSON.stringify(answerResult[0].values.map(r => r.map(String)).sort());
+
+      if (uCols.join(',') === aCols.join(',') && uVals === aVals) {
+        completedChallenge.add(challenge.id);
+        showGradeResult('정답! 결과가 일치합니다', true);
+        renderMissions();
+      } else if (uVals === aVals) {
+        completedChallenge.add(challenge.id);
+        showGradeResult('정답! (컬럼명은 다르지만 결과가 맞습니다)', true);
+        renderMissions();
+      } else {
+        showGradeResult('오답 — 결과가 다릅니다. 다시 시도해보세요 (정답: ' + answerResult[0].values.length + '행)', false);
+        el.classList.add('wrong');
+        setTimeout(() => el.classList.remove('wrong'), 400);
+      }
+    } catch (e) {
+      showGradeResult('쿼리 오류 — ' + e.message, false);
+    }
+  }
+
+  function showGradeResult(msg, isCorrect) {
+    const el = document.getElementById('grade-result');
+    if (!el) return;
+    el.className = 'grade-result show ' + (isCorrect ? 'correct' : 'incorrect');
+    el.textContent = (isCorrect ? '&#10003; ' : '&#10007; ') + msg;
+    el.innerHTML = (isCorrect ? '&#10003; ' : '&#10007; ') + msg;
   }
 
   function checkMissions(sql) {
     let passed = false;
-    L.missions.forEach(m => {
-      if (!completed.has(m.id) && m.check(sql)) {
-        completed.add(m.id);
+
+    L.practice.forEach(m => {
+      if (!completedPractice.has(m.id) && m.check(sql)) {
+        completedPractice.add(m.id);
         passed = true;
       }
     });
-    renderMissions();
+
+    if (passed) renderMissions();
     return passed;
   }
 
