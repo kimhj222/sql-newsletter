@@ -43,6 +43,9 @@ table.data th{position:sticky;top:0;background:var(--surface-alt);text-align:lef
 table.data td{padding:7px 12px;border-bottom:1px solid var(--border-light);color:var(--text);font-family:var(--mono);font-size:.78rem}
 table.data tbody tr:hover{background:var(--surface-alt)}
 .row-count{font-size:.75rem;color:var(--text-light);padding:8px 12px;border-top:1px solid var(--border-light);text-align:right}
+.table-name-bar{padding:10px 12px;background:var(--surface-alt);border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:6px}
+.table-name-label{font-size:.75rem;color:var(--text-light)}
+.table-name-code{font-family:var(--mono);font-size:.85rem;font-weight:500;color:var(--accent);background:var(--accent-bg);padding:2px 8px;border-radius:4px}
 
 .editor-section{margin-top:2rem}
 .editor-wrap{position:relative}
@@ -178,7 +181,8 @@ textarea.editor:focus{border-color:var(--accent)}
   function showTable(idx) {
     tabsEl.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
     const t = L.tables[idx];
-    let h = '<table class="data"><thead><tr>' + t.columns.map(c => '<th>' + c + '</th>').join('') + '</tr></thead><tbody>';
+    let h = '<div class="table-name-bar"><span class="table-name-label">테이블명:</span> <code class="table-name-code">' + t.name + '</code></div>';
+    h += '<table class="data"><thead><tr>' + t.columns.map(c => '<th>' + c + '</th>').join('') + '</tr></thead><tbody>';
     t.rows.forEach(r => {
       h += '<tr>' + r.map(v => '<td>' + v + '</td>').join('') + '</tr>';
     });
