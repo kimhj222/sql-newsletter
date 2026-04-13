@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL 실습 위젯</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fafaf8;--surface:#fff;--surface-alt:#f3f3ef;
+  --text:#1c1c1a;--text-mid:#5a5a56;--text-light:#8a8a84;
+  --border:#e2e2dc;--border-light:#eeeeea;
+  --accent:#2d5be3;--accent-hover:#1d4ac7;--accent-bg:#eef2fd;--accent-text:#1d3a8a;
+  --success:#1a7f37;--success-bg:#e6f6eb;
+  --error:#cf222e;--error-bg:#fde8e8;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'IBM Plex Sans KR','Pretendard',system-ui,sans-serif;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:2rem 1.5rem 3rem}
+
+.header{margin-bottom:2rem}
+.badge{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.5px;padding:4px 12px;border-radius:20px;background:var(--accent-bg);color:var(--accent-text);margin-bottom:10px}
+.title{font-size:1.4rem;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px}
+.subtitle{font-size:.9rem;color:var(--text-mid)}
+
+.section-label{font-size:.75rem;font-weight:600;color:var(--text-light);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px}
+
+.tabs{display:flex;gap:0;border-bottom:1.5px solid var(--border);margin-bottom:0}
+.tab{padding:10px 18px;font-size:.85rem;font-family:var(--sans);cursor:pointer;border:none;background:none;color:var(--text-light);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1.5px;transition:color .15s,border-color .15s}
+.tab:hover{color:var(--text-mid)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden}
+.card-inner{padding:1rem 1.25rem}
+
+.table-wrap{overflow-x:auto;max-height:260px;overflow-y:auto}
+table.data{width:100%;border-collapse:collapse;font-size:.8rem;white-space:nowrap}
+table.data th{position:sticky;top:0;background:var(--surface-alt);text-align:left;padding:8px 12px;color:var(--text-mid);font-weight:600;border-bottom:1.5px solid var(--border);z-index:1}
+table.data td{padding:7px 12px;border-bottom:1px solid var(--border-light);color:var(--text);font-family:var(--mono);font-size:.78rem}
+table.data tbody tr:hover{background:var(--surface-alt)}
+.row-count{font-size:.75rem;color:var(--text-light);padding:8px 12px;border-top:1px solid var(--border-light);text-align:right}
+
+.editor-section{margin-top:2rem}
+.editor-wrap{position:relative}
+textarea.editor{width:100%;min-height:120px;padding:16px;font-family:var(--mono);font-size:.85rem;line-height:1.7;color:var(--text);background:var(--surface-alt);border:1.5px solid var(--border);border-radius:var(--radius);resize:vertical;outline:none;transition:border-color .15s}
+textarea.editor:focus{border-color:var(--accent)}
+.editor-hint{position:absolute;bottom:8px;right:12px;font-size:.7rem;color:var(--text-light);pointer-events:none}
+
+.btn-row{display:flex;gap:8px;margin-top:10px}
+.btn{padding:8px 20px;font-size:.85rem;font-weight:500;font-family:var(--sans);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;border:none}
+.btn:active{transform:scale(.97)}
+.btn-run{background:var(--accent);color:#fff}
+.btn-run:hover{background:var(--accent-hover)}
+.btn-reset{background:transparent;border:1.5px solid var(--border);color:var(--text-mid)}
+.btn-reset:hover{background:var(--surface-alt)}
+
+.result{margin-top:12px;min-height:20px}
+.result .card{border-color:var(--border)}
+.result-empty{font-size:.85rem;color:var(--text-light);padding:12px 0}
+.msg-success{font-size:.85rem;color:var(--success);padding:10px 14px;background:var(--success-bg);border-radius:var(--radius-sm)}
+.msg-error{font-size:.85rem;color:var(--error);padding:10px 14px;background:var(--error-bg);border-radius:var(--radius-sm);font-family:var(--mono);word-break:break-all}
+.msg-mission{display:inline-block;margin-top:8px;font-size:.8rem;color:var(--success);font-weight:500}
+
+.missions-section{margin-top:2rem}
+.missions{display:flex;flex-direction:column;gap:8px}
+.mission{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:var(--surface);border:1.5px solid var(--border-light);border-radius:var(--radius);cursor:pointer;transition:all .15s}
+.mission:hover{border-color:var(--border);background:var(--surface-alt)}
+.mission.done{border-color:#a3d9b1}
+.mission .check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s;font-size:12px;color:transparent}
+.mission.done .check{background:var(--success);border-color:var(--success);color:#fff}
+.mission .body{flex:1}
+.mission .body .text{font-size:.85rem;color:var(--text);line-height:1.5}
+.mission .body .hint{font-size:.75rem;color:var(--text-light);margin-top:3px}
+
+.progress-bar{margin-top:1.5rem;display:flex;align-items:center;gap:12px}
+.progress-track{flex:1;height:6px;background:var(--border-light);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--success);border-radius:3px;transition:width .4s ease}
+.progress-text{font-size:.75rem;color:var(--text-light);white-space:nowrap}
+
+.loading{display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--text-light);font-size:.9rem}
+.loading::after{content:"";width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;margin-left:10px;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:600px){
+  .wrap{padding:1.25rem 1rem 2rem}
+  .title{font-size:1.2rem}
+  .tab{padding:8px 12px;font-size:.8rem}
+  textarea.editor{min-height:100px;font-size:.8rem}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+  <div class="loading">SQL 실습 환경을 준비하고 있어요</div>
+</div>
+
+<script src="data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+<script>
+(async function(){
+  const L = LESSON;
+  let db = null;
+  const completed = new Set();
+
+  const SQL = await initSqlJs({
+    locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/' + f
+  });
+  db = new SQL.Database();
+
+  L.tables.forEach(t => {
+    db.run(t.createSQL);
+    t.rows.forEach(r => db.run(t.insertSQL, r));
+  });
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="header">
+      <div class="badge">${L.id}회차</div>
+      <div class="title">${L.title}</div>
+      <div class="subtitle">${L.subtitle}</div>
+    </div>
+
+    <div>
+      <div class="section-label">예시 테이블</div>
+      <div class="tabs" id="tabs"></div>
+      <div class="card" id="table-card">
+        <div class="table-wrap" id="table-display"></div>
+        <div class="row-count" id="row-count"></div>
+      </div>
+    </div>
+
+    <div class="editor-section">
+      <div class="section-label">SQL 편집기</div>
+      <div class="editor-wrap">
+        <textarea class="editor" id="editor" spellcheck="false">${L.defaultQuery}</textarea>
+        <div class="editor-hint">Ctrl+Enter로 실행</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-run" id="btn-run">실행</button>
+        <button class="btn btn-reset" id="btn-reset">초기화</button>
+      </div>
+      <div class="result" id="result"></div>
+    </div>
+
+    <div class="missions-section">
+      <div class="section-label">미션</div>
+      <div class="missions" id="missions"></div>
+      <div class="progress-bar">
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-text" id="progress-text">0 / ${L.missions.length}</div>
+      </div>
+    </div>
+  `;
+
+  const tabsEl = document.getElementById('tabs');
+  const tableEl = document.getElementById('table-display');
+  const rowCountEl = document.getElementById('row-count');
+  const editorEl = document.getElementById('editor');
+  const resultEl = document.getElementById('result');
+  const missionsEl = document.getElementById('missions');
+  const progressFill = document.getElementById('progress-fill');
+  const progressText = document.getElementById('progress-text');
+
+  // --- 탭 & 테이블 ---
+  L.tables.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (i === 0 ? ' active' : '');
+    btn.textContent = t.label;
+    btn.onclick = () => showTable(i);
+    tabsEl.appendChild(btn);
+  });
+
+  function showTable(idx) {
+    tabsEl.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+    const t = L.tables[idx];
+    let h = '<table class="data"><thead><tr>' + t.columns.map(c => '<th>' + c + '</th>').join('') + '</tr></thead><tbody>';
+    t.rows.forEach(r => {
+      h += '<tr>' + r.map(v => '<td>' + v + '</td>').join('') + '</tr>';
+    });
+    h += '</tbody></table>';
+    tableEl.innerHTML = h;
+    rowCountEl.textContent = t.rows.length + '행';
+  }
+  showTable(0);
+
+  // --- SQL 실행 ---
+  function runQuery() {
+    const sql = editorEl.value.trim();
+    if (!sql) { resultEl.innerHTML = '<div class="msg-error">쿼리를 입력해주세요</div>'; return; }
+    try {
+      const res = db.exec(sql);
+      if (!res.length) {
+        resultEl.innerHTML = '<div class="msg-success">실행 완료 (결과 없음)</div>';
+        checkMissions(sql);
+        return;
+      }
+      const r = res[0];
+      let h = '<div class="card"><div class="table-wrap"><table class="data"><thead><tr>';
+      h += r.columns.map(c => '<th>' + c + '</th>').join('');
+      h += '</tr></thead><tbody>';
+      r.values.forEach(row => {
+        h += '<tr>' + row.map(v => '<td>' + (v === null ? 'NULL' : v) + '</td>').join('') + '</tr>';
+      });
+      h += '</tbody></table></div>';
+      h += '<div class="row-count">' + r.values.length + '행</div></div>';
+      const missionPassed = checkMissions(sql);
+      if (missionPassed) h += '<div class="msg-mission">미션 완료!</div>';
+      resultEl.innerHTML = h;
+    } catch (e) {
+      resultEl.innerHTML = '<div class="msg-error">' + e.message + '</div>';
+    }
+  }
+
+  document.getElementById('btn-run').onclick = runQuery;
+  document.getElementById('btn-reset').onclick = () => {
+    editorEl.value = L.defaultQuery;
+    resultEl.innerHTML = '';
+  };
+  editorEl.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runQuery(); }
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const s = editorEl.selectionStart;
+      editorEl.value = editorEl.value.substring(0, s) + '  ' + editorEl.value.substring(editorEl.selectionEnd);
+      editorEl.selectionStart = editorEl.selectionEnd = s + 2;
+    }
+  });
+
+  // --- 미션 ---
+  function renderMissions() {
+    missionsEl.innerHTML = L.missions.map(m => `
+      <div class="mission ${completed.has(m.id) ? 'done' : ''}" data-hint="${encodeURIComponent(m.hint)}">
+        <div class="check">${completed.has(m.id) ? '&#10003;' : ''}</div>
+        <div class="body">
+          <div class="text">${m.text}</div>
+          <div class="hint">${completed.has(m.id) ? '완료!' : '클릭하면 힌트 쿼리가 입력돼요'}</div>
+        </div>
+      </div>
+    `).join('');
+
+    missionsEl.querySelectorAll('.mission').forEach(el => {
+      el.onclick = () => {
+        editorEl.value = decodeURIComponent(el.dataset.hint);
+        editorEl.focus();
+        runQuery();
+      };
+    });
+
+    const done = completed.size;
+    const total = L.missions.length;
+    progressFill.style.width = (done / total * 100) + '%';
+    progressText.textContent = done + ' / ' + total + (done === total ? '  완료!' : '');
+  }
+
+  function checkMissions(sql) {
+    let passed = false;
+    L.missions.forEach(m => {
+      if (!completed.has(m.id) && m.check(sql)) {
+        completed.add(m.id);
+        passed = true;
+      }
+    });
+    renderMissions();
+    return passed;
+  }
+
+  renderMissions();
+})();
+</script>
+</body>
+</html>
