@@ -95,11 +95,16 @@ textarea.editor::placeholder{color:var(--text-light)}
 .challenge-card:hover{border-color:var(--border)}
 .challenge-card.done{border-color:#a3d9b1}
 .challenge-card.wrong{border-color:#f09995;animation:shake .3s}
-.challenge-header{display:flex;align-items:center;gap:8px}
+.challenge-header{display:flex;align-items:center;gap:8px;cursor:pointer}
 .challenge-header .check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:transparent}
 .challenge-card.done .check{background:var(--success);border-color:var(--success);color:#fff}
 .challenge-header .num{font-size:.72rem;font-weight:600;color:var(--error);flex-shrink:0}
 .challenge-header .text{font-size:.78rem;color:var(--text);line-height:1.4;flex:1}
+.expand-arrow{font-size:9px;color:var(--text-light);transition:transform .2s;flex-shrink:0}
+.expand-arrow.open{transform:rotate(90deg)}
+
+.challenge-body{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.challenge-body.open{max-height:400px}
 
 .preview{margin-top:8px;padding:8px;background:var(--surface-alt);border-radius:var(--radius-sm);border:1px dashed var(--border)}
 .preview-note{font-size:.72rem;color:var(--accent-text);background:var(--accent-bg);padding:3px 8px;border-radius:3px;margin-bottom:6px;display:inline-block}
@@ -139,7 +144,7 @@ textarea.editor::placeholder{color:var(--text-light)}
   <div class="loading">SQL 실습 환경을 준비하고 있어요</div>
 </div>
 
-<script src="data.js"></script>
+<script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
 <script>
 (async function(){
@@ -365,15 +370,33 @@ textarea.editor::placeholder{color:var(--text-light)}
       }
       return `
       <div class="challenge-card ${done.has(m.id) ? 'done' : ''}" data-id="${m.id}">
-        <div class="challenge-header">
+        <div class="challenge-header" data-toggle="${m.id}">
           <div class="check">${done.has(m.id) ? '&#10003;' : ''}</div>
           <div class="num">Q${i + 1}</div>
           <div class="text">${m.text}</div>
+          <div class="expand-arrow">&#9654;</div>
         </div>
-        ${previewHtml}
-        ${!done.has(m.id) ? '<button class="btn-grade" data-id="' + m.id + '">채점하기</button>' : ''}
+        <div class="challenge-body" id="cbody-${m.id}">
+          ${previewHtml}
+          ${!done.has(m.id) ? '<button class="btn-grade" data-id="' + m.id + '">채점하기</button>' : ''}
+        </div>
       </div>`;
     }).join('') + '<div class="grade-result" id="grade-result"></div>';
+
+    missionsEl.querySelectorAll('.challenge-header[data-toggle]').forEach(header => {
+      header.onclick = () => {
+        const id = header.dataset.toggle;
+        const body = document.getElementById('cbody-' + id);
+        const arrow = header.querySelector('.expand-arrow');
+        const isOpen = body.classList.contains('open');
+        missionsEl.querySelectorAll('.challenge-body').forEach(b => b.classList.remove('open'));
+        missionsEl.querySelectorAll('.expand-arrow').forEach(a => a.classList.remove('open'));
+        if (!isOpen) {
+          body.classList.add('open');
+          arrow.classList.add('open');
+        }
+      };
+    });
 
     missionsEl.querySelectorAll('.btn-grade').forEach(btn => {
       btn.onclick = (e) => {
