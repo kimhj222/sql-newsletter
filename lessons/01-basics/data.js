@@ -189,24 +189,43 @@ const LESSON = {
   ],
 
   // 실전문제: 힌트 없음, 결과값으로 채점
+  // preview: 기대 결과의 컬럼과 일부 행을 미리 보여줌
   challenge: [
     {
       id: "c1",
       text: "products 테이블에서 가격이 30,000원 이상인 상품의 이름과 가격을 조회하세요",
       answerQuery: "SELECT product_name, price FROM products WHERE price >= 30000",
-      check: (sql) => /select\s+.*product_name.*price.*from\s+products.*where\s+.*price\s*>=\s*30000/i.test(sql)
+      check: (sql) => /select\s+.*product_name.*price.*from\s+products.*where\s+.*price\s*>=\s*30000/i.test(sql),
+      preview: {
+        columns: ["product_name", "price"],
+        rows: [["USB 허브", 32000], ["모니터 거치대", 45000]],
+        totalRows: 4,
+        note: "결과에 이 2개 컬럼만 나와야 해요"
+      }
     },
     {
       id: "c2",
       text: "orders 테이블에서 2024년 3월에 주문된 건만 조회하세요 (order_date 활용)",
       answerQuery: "SELECT * FROM orders WHERE order_date >= '2024-03-01' AND order_date < '2024-04-01'",
-      check: (sql) => /where\s+.*order_date/i.test(sql) && /2024-03/i.test(sql)
+      check: (sql) => /where\s+.*order_date/i.test(sql) && /2024-03/i.test(sql),
+      preview: {
+        columns: ["order_id", "customer_id", "product_id", "quantity", "order_date"],
+        rows: [[1001, 2, 101, 3, "2024-03-03"], [1023, 8, 103, 1, "2024-03-04"]],
+        totalRows: 12,
+        note: "3월 1일~3월 31일 주문만 나와야 해요"
+      }
     },
     {
       id: "c3",
       text: "고객 중 부산에 사는 사람의 이름과 이메일을 이름순(오름차순)으로 조회하세요",
       answerQuery: "SELECT name, email FROM customers WHERE city = '부산' ORDER BY name ASC",
-      check: (sql) => /where\s+.*city\s*=\s*'부산'/i.test(sql) && /order\s+by\s+.*name/i.test(sql)
+      check: (sql) => /where\s+.*city\s*=\s*'부산'/i.test(sql) && /order\s+by\s+.*name/i.test(sql),
+      preview: {
+        columns: ["name", "email"],
+        rows: [["이지영", "jiyoung@email.com"]],
+        totalRows: 2,
+        note: "name과 email 컬럼만, 이름순 정렬이에요"
+      }
     }
   ]
 };
